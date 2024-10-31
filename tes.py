@@ -7,6 +7,8 @@ from datasets import load_dataset
 
 
 if __name__=='__main__':
+
+    print(torch.cuda.is_available())
     dataset = 'lifestyle'
     datasplit = 'dev'
 
@@ -45,3 +47,16 @@ if __name__=='__main__':
         indexer.index(name=index_name, collection=collection[:max_id], overwrite=True)
 
     indexer.get_index() # You can get the absolute path of the index, if needed.
+    
+    with Run().context(RunConfig(experiment='notebook')):
+        searcher = Searcher(index=index_name, collection=collection)
+
+    query = filtered_queries[13] # try with an in-range query or supply your own
+    print(f"#> {query}")
+
+    # Find the top-3 passages for this query
+    results = searcher.search(query, k=3)
+
+    # Print out the top-k retrieved passages
+    for passage_id, passage_rank, passage_score in zip(*results):
+        print(f"\t [{passage_rank}] \t\t {passage_score:.1f} \t\t {searcher.collection[passage_id]}")
